@@ -554,20 +554,37 @@ class _SuperTooltipState extends State<SuperTooltip>
       parent: _animationController,
       curve: Curves.fastOutSlowIn,
     );
-    final offsetToTarget = Offset(
-      -target.dx + size.width / 2,
-      -target.dy + size.height / 2,
-    );
     final backgroundColor =
         widget.backgroundColor ?? Theme.of(context).cardColor;
 
     var constraints = widget.constraints;
-    var preferredDirection =
-        widget.popupDirectionBuilder?.call() ?? widget.popupDirection;
+    var preferredDirection = widget.popupDirection;
     var left = widget.left;
     var right = widget.right;
     var top = widget.top;
     var bottom = widget.bottom;
+
+    if (overlay != null &&
+        target.dy > overlay.size.center(Offset.zero).dy &&
+        preferredDirection == TooltipDirection.down) {
+      preferredDirection = TooltipDirection.up;
+    } else if (overlay != null &&
+        target.dy <= overlay.size.center(Offset.zero).dy &&
+        preferredDirection == TooltipDirection.up) {
+      preferredDirection = TooltipDirection.down;
+    }
+
+    var minimumOffsetToTarget = 0;
+    if (preferredDirection == TooltipDirection.down) {
+      minimumOffsetToTarget = 8;
+    } else if (preferredDirection == TooltipDirection.up) {
+      minimumOffsetToTarget = -8;
+    }
+
+    final offsetToTarget = Offset(
+      -target.dx + size.width / 2,
+      minimumOffsetToTarget - target.dy + size.height / 2,
+    );
 
     if (widget.snapsFarAwayVertically) {
       constraints = constraints.copyWith(maxHeight: null);
